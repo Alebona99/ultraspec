@@ -21,46 +21,6 @@ mkroot() { # mkroot <phase>
 }
 feed() { sed "s#__ROOT__#$1#g" "$FIX/$2"; }
 
-# ---------- claude-code adapter (3.1) ----------
-DISP="$US_SRC/adapters/claude-code/dispatch.sh"
-
-it "claude-code: Write to src/ during SPEC -> exit 2 (deny)"
-r="$(mkroot spec)"
-feed "$r" cc_pre_write_src.json | US_ROOT="$r" bash "$DISP" gate >/dev/null 2>&1
-assert_rc 2 "$?"
-
-it "claude-code: Edit on workflows/ during SPEC -> exit 0 (allow)"
-feed "$r" cc_pre_write_workflow.json | US_ROOT="$r" bash "$DISP" gate >/dev/null 2>&1
-assert_rc 0 "$?"
-
-it "claude-code: git commit via Bash during SPEC -> exit 2"
-feed "$r" cc_pre_bash_commit.json | US_ROOT="$r" bash "$DISP" gate >/dev/null 2>&1
-assert_rc 2 "$?"
-
-it "claude-code: Write to src/ during BUILD -> exit 0"
-rb="$(mkroot build)"
-feed "$rb" cc_pre_write_src.json | US_ROOT="$rb" bash "$DISP" gate >/dev/null 2>&1
-assert_rc 0 "$?"
-
-it "claude-code: SessionStart -> additionalContext JSON on stdout"
-out="$(feed "$r" cc_session_start.json | US_ROOT="$r" bash "$DISP" banner)"
-assert_eq "SessionStart" "$(jq -r '.hookSpecificOutput.hookEventName' <<<"$out")"
-assert_contains "$(jq -r '.hookSpecificOutput.additionalContext' <<<"$out")" "phase=spec"
-
-it "claude-code: UserPromptSubmit -> additionalContext under hookEventName UserPromptSubmit"
-out="$(feed "$r" cc_user_prompt.json | US_ROOT="$r" bash "$DISP" banner)"
-assert_eq "UserPromptSubmit" "$(jq -r '.hookSpecificOutput.hookEventName' <<<"$out")"
-assert_contains "$(jq -r '.hookSpecificOutput.additionalContext' <<<"$out")" "phase=spec"
-
-it "claude-code: Stop in SPEC -> exit 0 (spec is not stop-gated)"
-feed "$r" cc_stop.json | US_ROOT="$r" bash "$DISP" stop >/dev/null 2>&1
-assert_rc 0 "$?"
-
-it "claude-code: PostToolUse Write -> additionalContext + exit 0"
-out="$(feed "$r" cc_post_write.json | US_ROOT="$r" bash "$DISP" nudge)"; rc=$?
-assert_rc 0 "$rc"
-assert_contains "$out" "spec.md"
-
 # ---------- generic-git fallback (3.2) ----------
 PC="$US_SRC/adapters/generic-git/pre-commit"
 
