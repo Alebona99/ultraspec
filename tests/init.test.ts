@@ -3,6 +3,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
 import { runInit } from "../src/init.js";
 
 const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
@@ -57,5 +58,33 @@ describe("runInit", () => {
     const settings = JSON.parse(fs.readFileSync(path.join(target, ".claude/settings.json"), "utf8"));
     const stopCommands = settings.hooks.Stop.flatMap((h: any) => h.hooks.map((x: any) => x.command));
     expect(stopCommands.filter((c: string) => c.includes("stop")).length).toBe(1);
+  });
+
+  it("installs pre-commit hook into .git/hooks when target is a git repo", () => {
+    target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
+    // Initialize a git repo in target
+    execFileSync("git", ["init"], { cwd: target });
+    runInit(target, packageRoot);
+    const preCommitPath = path.join(target, ".git/hooks/pre-commit");
+    expect(fs.existsSync(preCommitPath)).toBe(true);
+    const content = fs.readFileSync(preCommitPath, "utf8");
+    expect(content.length).toBeGreaterThan(0);
+  });
+
+  it("does not throw when target is not a git repo", () => {
+    target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
+    // Don't initialize a git repo; just call runInit
+    expect(() => runInit(target, packageRoot)).not.toThrow();
+  });
+
+  it("records packageVersion in .manifest.json entries", () => {
+    target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
+    runInit(target, packageRoot);
+    const manifest = JSON.parse(fs.readFileSync(path.join(target, "ultraspec/.manifest.json"), "utf8"));
+    for (const [key, entry] of Object.entries(manifest)) {
+      if (key.startsWith("workflow/")) {
+        expect((entry as any).packageVersion).toBe("0.1.0");
+      }
+    }
   });
 });

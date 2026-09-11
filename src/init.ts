@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 
 const HOOK_EVENTS: Record<string, { matcher?: string; core: string }[]> = {
   SessionStart: [{ matcher: "startup|resume|clear|compact", core: "banner" }],
@@ -34,7 +35,7 @@ export function copyWorkflowTemplates(target: string, packageRoot: string): stri
   const dstDir = path.join(target, "ultraspec", "workflow");
   ensureDir(dstDir);
   const manifestPath = path.join(target, "ultraspec", ".manifest.json");
-  const manifest: Record<string, { hash: string }> = fs.existsSync(manifestPath)
+  const manifest: Record<string, { hash: string; packageVersion: string }> = fs.existsSync(manifestPath)
     ? JSON.parse(fs.readFileSync(manifestPath, "utf8")) : {};
   const pkg = JSON.parse(fs.readFileSync(path.join(packageRoot, "package.json"), "utf8"));
   for (const f of fs.readdirSync(srcDir)) {
@@ -47,7 +48,7 @@ export function copyWorkflowTemplates(target: string, packageRoot: string): stri
     const localUnmodified = existing === null || (tracked && tracked.hash === existingHash);
     if (localUnmodified) {
       fs.writeFileSync(dst, content);
-      manifest[`workflow/${f}`] = { hash };
+      manifest[`workflow/${f}`] = { hash, packageVersion: pkg.version };
       written.push(dst);
     }
   }
@@ -97,11 +98,24 @@ export function installGenericGit(target: string, packageRoot: string): string[]
   const srcDir = path.join(packageRoot, "adapters", "generic-git");
   const dstDir = path.join(target, "ultraspec", "adapters", "generic-git");
   ensureDir(dstDir);
+  let installShPath = "";
   for (const f of ["install.sh", "pre-commit"]) {
     const dst = path.join(dstDir, f);
     fs.copyFileSync(path.join(srcDir, f), dst);
     fs.chmodSync(dst, 0o755);
     written.push(dst);
+    if (f === "install.sh") {
+      installShPath = dst;
+    }
+  }
+  // Execute install.sh to wire the pre-commit hook into .git/hooks
+  if (installShPath) {
+    try {
+      execFileSync(installShPath, [], { cwd: target });
+    } catch (e) {
+      // install.sh exits gracefully if target is not a git repo; that's acceptable
+      // so we catch and continue rather than throwing
+    }
   }
   return written;
 }

@@ -1,6 +1,7 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as crypto from "node:crypto";
+import { execFileSync } from "node:child_process";
 const HOOK_EVENTS = {
     SessionStart: [{ matcher: "startup|resume|clear|compact", core: "banner" }],
     UserPromptSubmit: [{ core: "banner" }],
@@ -43,7 +44,7 @@ export function copyWorkflowTemplates(target, packageRoot) {
         const localUnmodified = existing === null || (tracked && tracked.hash === existingHash);
         if (localUnmodified) {
             fs.writeFileSync(dst, content);
-            manifest[`workflow/${f}`] = { hash };
+            manifest[`workflow/${f}`] = { hash, packageVersion: pkg.version };
             written.push(dst);
         }
     }
@@ -91,11 +92,25 @@ export function installGenericGit(target, packageRoot) {
     const srcDir = path.join(packageRoot, "adapters", "generic-git");
     const dstDir = path.join(target, "ultraspec", "adapters", "generic-git");
     ensureDir(dstDir);
+    let installShPath = "";
     for (const f of ["install.sh", "pre-commit"]) {
         const dst = path.join(dstDir, f);
         fs.copyFileSync(path.join(srcDir, f), dst);
         fs.chmodSync(dst, 0o755);
         written.push(dst);
+        if (f === "install.sh") {
+            installShPath = dst;
+        }
+    }
+    // Execute install.sh to wire the pre-commit hook into .git/hooks
+    if (installShPath) {
+        try {
+            execFileSync(installShPath, [], { cwd: target });
+        }
+        catch (e) {
+            // install.sh exits gracefully if target is not a git repo; that's acceptable
+            // so we catch and continue rather than throwing
+        }
     }
     return written;
 }
