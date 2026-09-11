@@ -56,6 +56,11 @@ describe("findRoot / resolveEnv", () => {
     const env = resolveEnv(root)!;
     expect(env.config.code_edit_allowed_from).toBe("build");
   });
+  it("resolveEnv returns null (not throw) when us.config.json is invalid JSON", () => {
+    fs.writeFileSync(path.join(root, "ultraspec", "us.config.json"), "{ not valid json");
+    expect(() => resolveEnv(root)).not.toThrow();
+    expect(resolveEnv(root)).toBeNull();
+  });
 });
 
 describe("readState / stateActive — fail-open", () => {

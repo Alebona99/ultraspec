@@ -17,7 +17,12 @@ export function resolveEnv(cwd: string): UsEnv | null {
   if (!root) return null;
   const dir = path.join(root, "ultraspec");
   const configPath = path.join(dir, "us.config.json");
-  const config: UsConfig = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  let config: UsConfig;
+  try {
+    config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+  } catch {
+    return null;
+  }
   const rel = config.state_file || "ultraspec/.us-state.json";
   const stateFile = path.join(root, rel);
   return { root, dir, configPath, stateFile, config };
