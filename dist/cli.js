@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { resolveEnv } from "./lib/state.js";
+import { runInit } from "./init.js";
 import { cmdStart } from "./commands/start.js";
 import { cmdApprove } from "./commands/approve.js";
 import { cmdAdvance } from "./commands/advance.js";
@@ -22,7 +25,7 @@ const HELP = `ultraspec — state-machine CLI (backing implementation for the /u
   us handoff-path                    # echo where the next handoff file goes
   us handoff-done <file>             # stamp last_handoff_at
   us hook <harness> <core>           # invoked by harness adapters; stdin = native payload
-  us init                            # not yet implemented
+  us init [path]                     # scaffold ultraspec/ + .claude/ nel progetto ospite
   us update                          # not yet implemented
 
 All writes go through the state module so history/session_log stay intact.`;
@@ -91,7 +94,14 @@ export function main(argv, cwd = process.cwd()) {
     if (sub === "hook") {
         return runHook(rest[0], rest[1], cwd);
     }
-    if (sub === "init" || sub === "update") {
+    if (sub === "init") {
+        const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+        const target = path.resolve(cwd, rest[0] ?? ".");
+        const written = runInit(target, packageRoot);
+        console.log(`ultraspec inizializzato in ${target}:\n${written.map((w) => `  ${w}`).join("\n")}`);
+        return 0;
+    }
+    if (sub === "update") {
         console.error(`us: "${sub}" non ancora implementato`);
         return 1;
     }
