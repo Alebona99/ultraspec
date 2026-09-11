@@ -66,6 +66,16 @@ dell'utente**.
 
 Istruzioni complete per ogni agent in **[`docs/agents.md`](docs/agents.md)**.
 
+**Passo 0, sempre** — ultraspec vive in una cartella `ultraspec/` alla radice
+del progetto che lo usa (stato, config e workflow ci si scrivono dentro).
+Nel progetto target:
+
+```
+git submodule add https://github.com/Alebona99/ultraspec.git ultraspec
+# oppure, senza submodule:
+git clone https://github.com/Alebona99/ultraspec.git ultraspec && rm -rf ultraspec/.git
+```
+
 In breve — Claude Code come plugin locale, `.claude/settings.json`:
 
 ```json
@@ -80,6 +90,16 @@ In breve — Claude Code come plugin locale, `.claude/settings.json`:
 più `./ultraspec/adapters/generic-git/install.sh` (il fallback git va su
 **ogni** agent). OpenCode: aggiungi il plugin in `opencode.json`. Altri agent:
 basta `AGENTS.md` (generato dalla fase discover) + il fallback git.
+
+**Oppure, solo Claude Code, senza clonare a mano** — come plugin da
+marketplace remoto:
+```
+/plugin marketplace add https://github.com/Alebona99/ultraspec
+/plugin install ultraspec@ultraspec
+```
+Nota: `bin/us` e gli hook cercano comunque una cartella `ultraspec/` con dentro
+`us.config.json` risalendo dal progetto — verificare che l'installazione plugin
+la crei dove serve, o ripiegare sul Passo 0 se `bin/us status` non trova lo stato.
 
 ## Alias da shell
 

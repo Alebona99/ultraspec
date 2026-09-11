@@ -25,6 +25,12 @@ fallisce.
 
 ### Come plugin locale (repo che contiene `ultraspec/`)
 
+Prima di tutto, aggiungi questo repo come `ultraspec/` alla radice del
+progetto (submodule consigliato, per poter aggiornare senza vendorizzare):
+```
+git submodule add https://github.com/Alebona99/ultraspec.git ultraspec
+```
+
 `.claude/settings.json`:
 ```json
 {
@@ -48,6 +54,9 @@ poi `./ultraspec/adapters/generic-git/install.sh` e, la prima volta, apri
 
 ## OpenCode — first-class per gli hook
 
+Prima di tutto, aggiungi questo repo come `ultraspec/` alla radice del
+progetto (vedi il Passo 0 di Claude Code sopra).
+
 - **Hook** dall'adapter `adapters/opencode/plugin.ts`. In `opencode.json`:
   ```json
   { "plugin": ["./ultraspec/adapters/opencode/plugin.ts"] }
@@ -63,6 +72,8 @@ poi `./ultraspec/adapters/generic-git/install.sh` e, la prima volta, apri
 
 ## Cursor, Codex, e qualunque altro agent — via AGENTS.md
 
+0. Aggiungi questo repo come `ultraspec/` alla radice del progetto (vedi sopra,
+   `git submodule add`).
 1. Installa il fallback: `./ultraspec/adapters/generic-git/install.sh`.
    Questo da solo garantisce che **nessun commit fuori fase passi**.
 2. Assicurati che `AGENTS.md` alla radice del repo contenga la sezione
