@@ -90,13 +90,9 @@ function handoffSection(env: UsEnv): string[] {
       .map((f) => ({ f, mtime: fs.statSync(path.join(hdir, f)).mtimeMs }))
       .sort((a, b) => b.mtime - a.mtime);
   }
-  if (files.length === 0) {
-    lines.push("  nessuno");
-  } else {
-    for (const { f } of files.slice(0, 3)) {
-      const rel = path.join(hdir, f).replace(env.root + "/", "");
-      lines.push(`  ${rel}`);
-    }
+  for (const { f } of files.slice(0, 3)) {
+    const rel = path.join(hdir, f).replace(env.root + "/", "");
+    lines.push(`  ${rel}`);
   }
   return lines;
 }
