@@ -25,8 +25,9 @@ export function initConfigAndDirs(target, packageRoot) {
     }
     return written;
 }
-export function copyWorkflowTemplates(target, packageRoot) {
+export function syncWorkflowTemplates(target, packageRoot) {
     const written = [];
+    const drift = [];
     const srcDir = path.join(packageRoot, "workflow");
     const dstDir = path.join(target, "ultraspec", "workflow");
     ensureDir(dstDir);
@@ -47,9 +48,15 @@ export function copyWorkflowTemplates(target, packageRoot) {
             manifest[`workflow/${f}`] = { hash, packageVersion: pkg.version };
             written.push(dst);
         }
+        else {
+            drift.push(`workflow/${f}`);
+        }
     }
     fs.writeFileSync(manifestPath, JSON.stringify(manifest, null, 2));
-    return written;
+    return { written, drift };
+}
+export function copyWorkflowTemplates(target, packageRoot) {
+    return syncWorkflowTemplates(target, packageRoot).written;
 }
 export function generateCommands(target, packageRoot) {
     const written = [];

@@ -4,6 +4,7 @@ import * as path from "node:path";
 import { fileURLToPath } from "node:url";
 import { resolveEnv } from "./lib/state.js";
 import { runInit } from "./init.js";
+import { runUpdate } from "./update.js";
 import { cmdStart } from "./commands/start.js";
 import { cmdApprove } from "./commands/approve.js";
 import { cmdAdvance } from "./commands/advance.js";
@@ -28,7 +29,7 @@ const HELP = `ultraspec — state-machine CLI (backing implementation for the /u
   us handoff-done <file>             # stamp last_handoff_at
   us hook <harness> <core>           # invoked by harness adapters; stdin = native payload
   us init [path]                     # scaffold ultraspec/ + .claude/ nel progetto ospite
-  us update                          # not yet implemented
+  us update [path]                   # ri-sincronizza un progetto già inizializzato
 
 All writes go through the state module so history/session_log stay intact.`;
 
@@ -110,8 +111,14 @@ export function main(argv: string[], cwd: string = process.cwd()): number {
   }
 
   if (sub === "update") {
-    console.error(`us: "${sub}" non ancora implementato`);
-    return 1;
+    const packageRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
+    const target = path.resolve(cwd, rest[0] ?? ".");
+    const { updated, drift } = runUpdate(target, packageRoot);
+    console.log(`ultraspec aggiornato in ${target}:\n${updated.map((w) => `  ${w}`).join("\n")}`);
+    if (drift.length) {
+      console.log(`\nFile con modifiche locali non sovrascritti:\n${drift.map((d) => `  ${d}`).join("\n")}`);
+    }
+    return 0;
   }
 
   if (!STATE_SUBCOMMANDS.has(sub)) {

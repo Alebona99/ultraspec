@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Tests for the per-harness adapters  (tasks 3.1, 3.2, 3.3)
+# Tests for the per-harness adapters  (task 3.2 — generic-git fallback;
+# the opencode adapter's cases now live in tests/adapters/openCode.test.ts)
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 export US_SRC="${US_SRC:-$(cd "$here/.." && pwd)}"
@@ -42,33 +43,5 @@ it "generic-git: installer copies the hook into .git/hooks"
 gr="$(mkroot build)"; ( cd "$gr" && git init -q )
 ( cd "$gr" && bash "$US_SRC/adapters/generic-git/install.sh" ) >/dev/null 2>&1
 assert_true test -x "$gr/.git/hooks/pre-commit"
-
-# ---------- opencode adapter (3.3) ----------
-NODE="$(command -v node || true)"
-if [ -n "$NODE" ]; then
-  it "opencode: --selftest reaches the core hooks"
-  "$NODE" --experimental-strip-types "$US_SRC/adapters/opencode/plugin.ts" --selftest >/dev/null 2>&1
-  assert_rc 0 "$?"
-
-  it "opencode: toEvent maps write/bash to the normalized shape"
-  res="$("$NODE" --experimental-strip-types --input-type=module -e '
-    import { toEvent } from "'"$US_SRC"'/adapters/opencode/plugin.ts";
-    const a = toEvent("pre","write",{filePath:"/r/src/app.js"},"/r","s");
-    const b = toEvent("pre","bash",{command:"git commit -m x"},"/r","s");
-    console.log(JSON.stringify([a.event,a.target_path,b.event,b.command]));
-  ' 2>&1)"
-  assert_eq '["pre_write","/r/src/app.js","pre_bash","git commit -m x"]' "$res"
-
-  it "opencode: runCore on a src/ write during SPEC returns deny"
-  r2="$(mkroot spec)"
-  res="$("$NODE" --experimental-strip-types --input-type=module -e '
-    import { runCore, toEvent } from "'"$US_SRC"'/adapters/opencode/plugin.ts";
-    const ev = toEvent("pre","write",{filePath:"'"$r2"'/src/app.js"},"'"$r2"'","s");
-    console.log(runCore("us-gate.sh", ev).decision);
-  ' 2>&1)"
-  assert_eq "deny" "$res"
-else
-  it "opencode: (skipped — node not found)"; _pass
-fi
 
 us_test_summary
