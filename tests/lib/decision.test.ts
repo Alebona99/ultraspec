@@ -31,6 +31,26 @@ describe("pathMatchesAny (glob)", () => {
   it("** matches any depth", () => expect(pathMatchesAny("ultraspec/hooks/gate.sh", ["ultraspec/hooks/**"])).toBe(true));
   it("* does not cross /", () => expect(pathMatchesAny("a/b/c.ts", ["a/*.ts"])).toBe(false));
   it("no match", () => expect(pathMatchesAny("x/y.ts", ["src/**"])).toBe(false));
+
+  // Edge case 1: Literal dot escaping
+  it("literal dot: *.md does not match xmd", () => expect(pathMatchesAny("xmd", ["*.md"])).toBe(false));
+  it("literal dot: *.md matches test.md", () => expect(pathMatchesAny("test.md", ["*.md"])).toBe(true));
+
+  // Edge case 2: ? matches exactly one non-/ character
+  it("? matches one char: a?.ts matches ab.ts", () => expect(pathMatchesAny("ab.ts", ["a?.ts"])).toBe(true));
+  it("? requires exactly one: a?.ts does not match a.ts", () => expect(pathMatchesAny("a.ts", ["a?.ts"])).toBe(false));
+  it("? requires exactly one: a?.ts does not match abc.ts", () => expect(pathMatchesAny("abc.ts", ["a?.ts"])).toBe(false));
+
+  // Edge case 3: Full-path anchoring
+  it("anchoring: src/*.ts does not match other/src/x.ts", () => expect(pathMatchesAny("other/src/x.ts", ["src/*.ts"])).toBe(false));
+  it("anchoring: src/*.ts does not match src/x.ts.bak", () => expect(pathMatchesAny("src/x.ts.bak", ["src/*.ts"])).toBe(false));
+  it("anchoring: src/*.ts matches src/x.ts", () => expect(pathMatchesAny("src/x.ts", ["src/*.ts"])).toBe(true));
+
+  // Edge case 4: Regex metacharacter neutralization
+  it("metachar +: a+b.ts matches literal a+b.ts", () => expect(pathMatchesAny("a+b.ts", ["a+b.ts"])).toBe(true));
+  it("metachar +: a+b.ts does not match abb.ts", () => expect(pathMatchesAny("abb.ts", ["a+b.ts"])).toBe(false));
+  it("metachar (: func(x).ts matches literal func(x).ts", () => expect(pathMatchesAny("func(x).ts", ["func(x).ts"])).toBe(true));
+  it("metachar ): foo).ts matches literal foo).ts", () => expect(pathMatchesAny("foo).ts", ["foo).ts"])).toBe(true));
 });
 
 describe("decidePreWrite", () => {
