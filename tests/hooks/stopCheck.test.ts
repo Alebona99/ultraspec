@@ -24,7 +24,7 @@ function ev(partial: Partial<NormalizedEvent>): NormalizedEvent {
   };
 }
 
-function mkstate(phase: string): string {
+function mkconfig(): string {
   root = fs.mkdtempSync(path.join(os.tmpdir(), "us-hook-"));
   const usDir = path.join(root, "ultraspec");
   fs.mkdirSync(usDir, { recursive: true });
@@ -50,6 +50,13 @@ function mkstate(phase: string): string {
     handoff: { nudge_threshold: 15 },
   };
   fs.writeFileSync(path.join(usDir, "us.config.json"), JSON.stringify(config));
+
+  return root;
+}
+
+function mkstate(phase: string): string {
+  const root = mkconfig();
+  const usDir = path.join(root, "ultraspec");
 
   const state = {
     workflow: "w",
@@ -79,9 +86,9 @@ describe("stopCheck.decide — fail-open", () => {
     expect(stopCheckDecide(root, ev()).decision).toBe("allow");
   });
 
-  it("no active workflow -> allow", () => {
-    root = fs.mkdtempSync(path.join(os.tmpdir(), "us-hook-"));
-    expect(stopCheckDecide(root, ev()).decision).toBe("allow");
+  it("no active workflow (valid config, no state file) -> allow", () => {
+    const r = mkconfig();
+    expect(stopCheckDecide(r, ev()).decision).toBe("allow");
   });
 });
 
