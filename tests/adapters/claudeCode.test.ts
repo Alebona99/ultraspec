@@ -44,3 +44,118 @@ describe("handleClaudeCodeHook — gate", () => {
     expect(r.exitCode).toBe(0);
   });
 });
+
+describe("handleClaudeCodeHook — banner", () => {
+  it("session_start event -> exit 0, JSON with SessionStart and non-empty context", () => {
+    root = mkActiveProject();
+    const r = handleClaudeCodeHook("banner", root, {
+      hook_event_name: "SessionStart", cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+    expect(r.stderr).toBe("");
+    const json = JSON.parse(r.stdout);
+    expect(json.hookSpecificOutput.hookEventName).toBe("SessionStart");
+    expect(json.hookSpecificOutput.additionalContext).toBeTruthy();
+    expect(json.hookSpecificOutput.additionalContext).toContain("workflow=w");
+  });
+  it("user_prompt event -> exit 0, JSON with UserPromptSubmit", () => {
+    root = mkActiveProject();
+    const r = handleClaudeCodeHook("banner", root, {
+      hook_event_name: "UserPromptSubmit", cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+    expect(r.stderr).toBe("");
+    const json = JSON.parse(r.stdout);
+    expect(json.hookSpecificOutput.hookEventName).toBe("UserPromptSubmit");
+    expect(json.hookSpecificOutput.additionalContext).toBeTruthy();
+    expect(json.hookSpecificOutput.additionalContext).toContain("workflow=w");
+  });
+});
+
+describe("handleClaudeCodeHook — stop", () => {
+  it("stop event in gated phase with missing artifacts -> exit 2, reason on stderr", () => {
+    root = mkActiveProject();
+    // Modify config to gate the current phase
+    const configPath = path.join(root, "ultraspec", "us.config.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    config.stop_gated_phases = ["intake"];
+    config.gates.intake = { requires: ["spec.md"], requires_approval: false };
+    fs.writeFileSync(configPath, JSON.stringify(config));
+
+    const r = handleClaudeCodeHook("stop", root, {
+      hook_event_name: "Stop", cwd: root,
+    });
+    expect(r.exitCode).toBe(2);
+    expect(r.stderr).toContain("non completata");
+    expect(r.stderr).toContain("spec.md");
+  });
+  it("stop event in non-gated phase -> exit 0", () => {
+    root = mkActiveProject();
+    const r = handleClaudeCodeHook("stop", root, {
+      hook_event_name: "Stop", cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toBe("");
+  });
+  it("stop event in gated phase with all artifacts present -> exit 0", () => {
+    root = mkActiveProject();
+    // Modify config to gate the current phase
+    const configPath = path.join(root, "ultraspec", "us.config.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    config.stop_gated_phases = ["intake"];
+    config.gates.intake = { requires: ["spec.md"], requires_approval: false };
+    fs.writeFileSync(configPath, JSON.stringify(config));
+
+    // Create the required artifact
+    const artifactsDir = path.join(root, "ultraspec", "workflows", "w");
+    fs.mkdirSync(artifactsDir, { recursive: true });
+    fs.writeFileSync(path.join(artifactsDir, "spec.md"), "# Spec");
+
+    const r = handleClaudeCodeHook("stop", root, {
+      hook_event_name: "Stop", cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+  });
+});
+
+describe("handleClaudeCodeHook — nudge", () => {
+  it("post_write event with missing artifacts -> exit 0, JSON with PostToolUse and missing artifact context", () => {
+    root = mkActiveProject();
+    // Modify config to have gates
+    const configPath = path.join(root, "ultraspec", "us.config.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    config.gates.intake = { requires: ["spec.md"], requires_approval: false };
+    fs.writeFileSync(configPath, JSON.stringify(config));
+
+    const r = handleClaudeCodeHook("nudge", root, {
+      hook_event_name: "PostToolUse", tool_name: "Write",
+      tool_input: { file_path: `${root}/test.ts` }, cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+    const json = JSON.parse(r.stdout);
+    expect(json.hookSpecificOutput.hookEventName).toBe("PostToolUse");
+    expect(json.hookSpecificOutput.additionalContext).toContain("spec.md");
+  });
+  it("post_write event with no missing artifacts -> exit 0, no JSON output", () => {
+    root = mkActiveProject();
+    // Modify config to have gates but create all artifacts
+    const configPath = path.join(root, "ultraspec", "us.config.json");
+    const config = JSON.parse(fs.readFileSync(configPath, "utf8"));
+    config.gates.intake = { requires: ["spec.md"], requires_approval: false };
+    fs.writeFileSync(configPath, JSON.stringify(config));
+
+    // Create the required artifact
+    const artifactsDir = path.join(root, "ultraspec", "workflows", "w");
+    fs.mkdirSync(artifactsDir, { recursive: true });
+    fs.writeFileSync(path.join(artifactsDir, "spec.md"), "# Spec");
+
+    const r = handleClaudeCodeHook("nudge", root, {
+      hook_event_name: "PostToolUse", tool_name: "Write",
+      tool_input: { file_path: `${root}/test.ts` }, cwd: root,
+    });
+    expect(r.exitCode).toBe(0);
+    expect(r.stdout).toBe("");
+    expect(r.stderr).toBe("");
+  });
+});
