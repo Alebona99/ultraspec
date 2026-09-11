@@ -1,0 +1,36 @@
+#!/usr/bin/env bash
+# ultraspec — universal fallback adapter (git pre-commit)
+#
+# Installed on EVERY harness in addition to the native adapter. Even where a
+# harness cannot reliably intercept a single file write, a `git commit` made in a
+# phase that does not allow commits will fail here.
+#
+# Self-locating: walks up from the repo root looking for ultraspec/hooks.
+set -u
+
+find_us_hooks() {
+  local dir; dir="$(pwd)"
+  while [ -n "$dir" ]; do
+    [ -f "$dir/ultraspec/hooks/lib/us-state.sh" ] && { printf '%s\n' "$dir/ultraspec/hooks"; return 0; }
+    [ "$dir" = "/" ] && break
+    dir="$(dirname "$dir")"
+  done
+  return 1
+}
+
+US_HOOKS="$(find_us_hooks)" || exit 0          # ultraspec not present -> do nothing
+command -v jq >/dev/null 2>&1 || exit 0         # no jq -> fail open
+
+. "$US_HOOKS/lib/us-state.sh"
+. "$US_HOOKS/lib/us-event.sh"
+
+ev="$(jq -nc --arg c "git commit" --arg w "$(pwd)" '{command:$c, cwd:$w}' | us_event_normalize generic-git)"
+decision="$(printf '%s' "$ev" | bash "$US_HOOKS/us-gate.sh" 2>/dev/null)"
+d="$(printf '%s' "$decision" | jq -r '.decision // "allow"' 2>/dev/null)"
+
+if [ "$d" = "deny" ]; then
+  printf 'ultraspec: %s\n' "$(printf '%s' "$decision" | jq -r '.reason // "commit bloccato"')" >&2
+  printf 'ultraspec: usa /ultraspec:advance per raggiungere una fase in cui il commit e'\'' consentito, oppure --no-verify per forzare (sconsigliato).\n' >&2
+  exit 1
+fi
+exit 0

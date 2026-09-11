@@ -1,0 +1,47 @@
+{
+  "$schema": "./templates/config.schema.json",
+  "state_file": "ultraspec/.us-state.json",
+  "workflows_dir": "ultraspec/workflows",
+  "handoffs_dir": "ultraspec/handoffs",
+  "memory_dir": "ultraspec/memory",
+  "phase_order": ["intake", "discover", "spec", "plan", "build", "review", "archive", "done"],
+  "code_edit_allowed_from": "build",
+  "commit_allowed_phases": ["build", "review", "archive"],
+  "stop_gated_phases": ["review"],
+  "protected_always_globs": [
+    "**/.us-state.json",
+    "ultraspec/us.config.json",
+    "ultraspec/hooks/**",
+    "ultraspec/adapters/**",
+    "ultraspec/bin/**"
+  ],
+  "protected_globs": [
+    "src/**", "app/**", "lib/**", "pkg/**", "packages/**", "cmd/**", "internal/**", "api/**"
+  ],
+  "always_allowed_globs": [
+    "ultraspec/workflows/**", "docs/**", "ultraspec/**",
+    "**/*_test.*", "**/*.test.*", "**/*_spec.*", "**/*.spec.*",
+    "**/test/**", "**/tests/**", "**/__tests__/**",
+    "AGENTS.md", "CLAUDE.md", "README*", "**/*.md"
+  ],
+  "phase_commands": {
+    "intake": "advance",
+    "discover": "discover",
+    "spec": "spec",
+    "plan": "plan",
+    "build": "build",
+    "review": "review",
+    "archive": "archive"
+  },
+  "gates": {
+    "discover": { "requires": ["discovery.md"], "requires_approval": false },
+    "spec": { "requires": ["spec.md"], "requires_approval": true },
+    "plan": { "requires": ["plan.md"], "requires_approval": true },
+    "build": { "requires": [], "requires_approval": false },
+    "review": { "requires": ["review.md"], "requires_approval": true },
+    "archive": { "requires": ["summary.md"], "requires_approval": true }
+  },
+  "agent_instructions": "auto",
+  "memory": { "enabled": false },
+  "handoff": { "nudge_threshold": 15 }
+}

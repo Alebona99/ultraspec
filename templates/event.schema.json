@@ -1,0 +1,20 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ultraspec/event.schema.json",
+  "title": "ultraspec normalized event",
+  "type": "object",
+  "required": ["event"],
+  "properties": {
+    "event": {
+      "enum": ["session_start", "user_prompt", "pre_write", "pre_bash", "stop", "pre_compact", "post_write", "ignore"]
+    },
+    "harness": { "type": "string" },
+    "cwd": { "type": "string" },
+    "session_id": { "type": ["string", "null"] },
+    "target_path": { "type": ["string", "null"], "description": "file path for pre_write / post_write" },
+    "command": { "type": ["string", "null"], "description": "shell command for pre_bash" },
+    "reason": { "type": ["string", "null"], "description": "startup|resume|clear|compact|manual|auto" },
+    "raw": {}
+  },
+  "additionalProperties": false
+}

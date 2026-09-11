@@ -1,0 +1,45 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ultraspec/config.schema.json",
+  "title": "ultraspec configuration (us.config.json)",
+  "type": "object",
+  "required": [
+    "state_file", "workflows_dir", "phase_order", "code_edit_allowed_from", "commit_allowed_phases",
+    "protected_globs", "always_allowed_globs", "phase_commands", "gates", "agent_instructions", "memory"
+  ],
+  "properties": {
+    "state_file": { "type": "string" },
+    "workflows_dir": { "type": "string" },
+    "handoffs_dir": { "type": "string" },
+    "memory_dir": { "type": "string" },
+    "stop_gated_phases": { "type": "array", "items": { "type": "string" } },
+    "phase_order": { "type": "array", "items": { "type": "string" }, "minItems": 2 },
+    "code_edit_allowed_from": { "type": "string" },
+    "commit_allowed_phases": { "type": "array", "items": { "type": "string" } },
+    "protected_always_globs": { "type": "array", "items": { "type": "string" } },
+    "protected_globs": { "type": "array", "items": { "type": "string" } },
+    "always_allowed_globs": { "type": "array", "items": { "type": "string" } },
+    "phase_commands": { "type": "object", "additionalProperties": { "type": "string" } },
+    "gates": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["requires", "requires_approval"],
+        "properties": {
+          "requires": { "type": "array", "items": { "type": "string" } },
+          "requires_approval": { "type": "boolean" }
+        }
+      }
+    },
+    "agent_instructions": { "enum": ["auto", "AGENTS.md", "CLAUDE.md", "both"] },
+    "memory": {
+      "type": "object",
+      "required": ["enabled"],
+      "properties": { "enabled": { "type": "boolean" } }
+    },
+    "handoff": {
+      "type": "object",
+      "properties": { "nudge_threshold": { "type": "integer", "minimum": 1 } }
+    }
+  }
+}

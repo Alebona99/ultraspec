@@ -1,0 +1,14 @@
+{
+  "name": "ultraspec",
+  "owner": { "name": "Alessio Bonanno" },
+  "metadata": {
+    "description": "Marketplace per la piattaforma di workflow ultraspec."
+  },
+  "plugins": [
+    {
+      "name": "ultraspec",
+      "source": "./",
+      "description": "Pipeline di sviluppo imposta con onramp greenfield/brownfield e gate cross-harness. Comandi /ultraspec:*."
+    }
+  ]
+}

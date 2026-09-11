@@ -1,0 +1,26 @@
+{
+  "workflow": "esempio-feature",
+  "track": "brownfield",
+  "phase": "spec",
+  "phases_done": ["intake", "discover"],
+  "harness": "claude-code",
+  "artifacts_dir": "ultraspec/workflows/esempio-feature",
+  "gates": {
+    "discover": { "requires": ["discovery.md"], "requires_approval": false, "human_approved": false },
+    "spec": { "requires": ["spec.md"], "requires_approval": true, "human_approved": false },
+    "plan": { "requires": ["plan.md"], "requires_approval": true, "human_approved": false },
+    "review": { "requires": ["review.md"], "requires_approval": true, "human_approved": false }
+  },
+  "session_log": [
+    { "at": "2026-09-10T09:00:00Z", "session_id": "s1", "event": "post_write", "note": "scritto proposal.md" }
+  ],
+  "last_handoff_at": null,
+  "last_session_id": "s1",
+  "nudge_marker": null,
+  "history": [
+    { "at": "2026-09-10T08:00:00Z", "event": "start", "from": null, "to": "intake" },
+    { "at": "2026-09-10T08:30:00Z", "event": "advance", "from": "intake", "to": "discover" },
+    { "at": "2026-09-10T09:00:00Z", "event": "advance", "from": "discover", "to": "spec" }
+  ],
+  "updated_at": "2026-09-10T09:00:00Z"
+}

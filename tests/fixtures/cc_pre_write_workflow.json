@@ -1,0 +1,1 @@
+{"session_id": "s1", "cwd": "__ROOT__", "hook_event_name": "PreToolUse", "tool_name": "Edit", "tool_input": {"file_path": "__ROOT__/ultraspec/workflows/w/spec.md", "old_string": "a", "new_string": "b"}}
