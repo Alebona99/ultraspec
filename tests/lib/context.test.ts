@@ -348,6 +348,16 @@ describe("stopDecision", () => {
     expect(d.decision).toBe("block");
     expect(d.reason).toContain("review.md");
   });
+  it("allows stop when the phase is stop-gated but all required artifacts are present", () => {
+    root = mkProject({ review: { requires: ["review.md"], requires_approval: false } });
+    const env = resolveEnv(root)!;
+    fs.mkdirSync(path.join(root, "ultraspec/workflows/w"), { recursive: true });
+    fs.writeFileSync(path.join(root, "ultraspec/workflows/w/review.md"), "x");
+    const s: UsState = { ...baseState, phase: "review", gates: { review: { requires: ["review.md"], requires_approval: false, human_approved: false } } };
+    writeState(env, s);
+    const d = stopDecision(env, s, "stop");
+    expect(d.decision).toBe("allow");
+  });
   it("allows stop when nothing is gated", () => {
     root = mkProject({});
     const env = resolveEnv(root)!;

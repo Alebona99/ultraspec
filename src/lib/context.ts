@@ -2,7 +2,7 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import type { UsEnv, UsState, NormalizedDecision } from "../types.js";
 import { cfg, patchState, nowIso } from "./state.js";
-import { emit } from "./decision.js";
+import { emit, phaseAllowsCode } from "./decision.js";
 
 export function artifactsDirAbs(env: UsEnv, state: UsState): string {
   const d = state.artifacts_dir || `${cfg(env, "workflows_dir", "ultraspec/workflows")}/${state.workflow}`;
@@ -27,9 +27,7 @@ export function phaseBannerShort(env: UsEnv, state: UsState): string {
   const allowed = env.config.commit_allowed_phases.join(", ");
   const nextcmd = env.config.phase_commands[phase];
   const lines: string[] = [`[ultraspec] workflow=${workflow}  track=${track}  phase=${phase}`];
-  const phaseIdx = env.config.phase_order.indexOf(phase);
-  const fromIdx = env.config.phase_order.indexOf(from);
-  if (phaseIdx >= 0 && fromIdx >= 0 && phaseIdx >= fromIdx) lines.push("Modifiche a codice: CONSENTITE in questa fase.");
+  if (phaseAllowsCode(env, state)) lines.push("Modifiche a codice: CONSENTITE in questa fase.");
   else lines.push(`BLOCCATO in questa fase: modifiche a codice di prodotto (fino alla fase "${from}") e git commit/push (consentiti in: ${allowed}).`);
   if (nextcmd) {
     lines.push(`Comando di fase: /ultraspec:${nextcmd}   (stato completo: /ultraspec:status)`);
@@ -96,7 +94,7 @@ export function stopDecision(env: UsEnv, state: UsState, event: "stop" | "pre_co
   const bucket = Math.floor(since / threshold);
   if (bucket >= 1 && state.nudge_marker !== bucket) {
     patchState(env, (s) => ({ ...s, nudge_marker: bucket }));
-    return emit("nudge", "", `Molto lavoro dall'ultimo handoff (${since} scritture). Scrivi /ultraspec:handoff prima di chiudere o compattare, così la prossima sessione riparte pulita.`);
+    return emit("nudge", `Molto lavoro dall'ultimo handoff (${since} scritture). Scrivi /ultraspec:handoff prima di chiudere o compattare, così la prossima sessione riparte pulita.`);
   }
   return emit("allow", `nothing to gate at ${event}`);
 }
