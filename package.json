@@ -7,7 +7,7 @@
   "files": ["dist", "commands", "workflow", "templates", "adapters/generic-git", "adapters/claude-code/hooks.json", "us.config.json", "README.md", "LICENSE"],
   "engines": { "node": ">=18" },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
     "test": "vitest run",
     "test:watch": "vitest",
     "prepublishOnly": "npm run build && npm test"
