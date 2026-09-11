@@ -1,0 +1,67 @@
+# <project> — istruzioni per agenti
+
+> File canonico cross-tool (AGENTS.md). Se l'agent è Claude Code, `CLAUDE.md` ne
+> è una proiezione — non modificare `CLAUDE.md` a mano.
+
+## Cos'è questo progetto
+
+<1-2 frasi>
+
+## Come si costruisce e si testa
+
+- Build:
+- Test (singolo file / suite intera):
+- Lint / typecheck:
+
+## Convenzioni
+
+- Struttura cartelle:
+- Naming / stile:
+- Gestione errori / logging:
+- Commit:
+
+## Aree sensibili
+
+- <file/moduli dove servire cautela>
+
+---
+
+## Workflow ultraspec (IMPORTANTE)
+
+Questo repo usa **ultraspec**: lo sviluppo procede per fasi
+`discover → spec → plan → build → review → archive`, con gate imposti da hook.
+Gli artefatti di ogni workflow vivono in `ultraspec/workflows/<nome>/`.
+
+### Regole per te, agent
+
+1. **All'inizio di ogni turno** guarda il riepilogo di ultraspec (iniettato
+   dagli hook, o esegui `bash ultraspec/bin/us status`): ti dice la fase
+   corrente, cosa è bloccato e qual è il prossimo passo.
+2. **Quando sei in una fase di lavoro** (`discover`, `spec`, `plan`, `build`,
+   `review`, `archive`) e la sua procedura non è ancora stata svolta in questa
+   sessione: **leggi `ultraspec/workflow/<fase>.md` e applicalo**. Non aspettare
+   che l'utente te lo chieda esplicitamente — la procedura *è* il tuo lavoro in
+   quella fase. Alla fine **fermati** al gate.
+3. **I comandi di controllo sono SOLO dell'utente. Non eseguirli mai tu:**
+   - `ultraspec/bin/us advance` — avanza di fase;
+   - `ultraspec/bin/us approve <fase>` — approva un gate umano;
+   - `ultraspec/bin/us reopen <fase> --reason "..."` — torna indietro;
+   - `ultraspec/bin/us set-track <track>` — cambia track.
+   Quando serve uno di questi, **chiedilo all'utente e fermati**.
+4. **Non modificare** `ultraspec/.us-state.json`, `ultraspec/us.config.json`,
+   né gli script in `ultraspec/hooks|adapters|bin/` — sono protetti e servono a
+   rendere il gate reale.
+5. Le modifiche a codice di prodotto sono consentite **solo dalla fase `build`**.
+   I commit solo in `build` / `review` / `archive`.
+6. Se un'operazione viene bloccata: esegui `bash ultraspec/bin/us status` per
+   capire perché e come sbloccare, e riferiscilo all'utente.
+
+### Comandi (per l'utente)
+
+Su Claude Code sono `/ultraspec:<azione>`. Su altri agent: chiedi all'agent di
+"eseguire la fase X di ultraspec" (leggerà `ultraspec/workflow/X.md`), oppure
+esegui direttamente `bash ultraspec/bin/us <sotto-comando>`.
+
+- Panoramica: `bash ultraspec/bin/us board`
+- Guida dettagliata: `ultraspec/docs/guide-greenfield.md` /
+  `ultraspec/docs/guide-brownfield.md`

@@ -1,0 +1,51 @@
+{
+  "_comment": "ultraspec adapter for Claude Code. Merge into .claude/settings.json (or install via the plugin). ${CLAUDE_PLUGIN_ROOT} resolves to ultraspec/ when loaded as a plugin; use an absolute path when merging by hand.",
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" banner", "shell": "bash" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" banner", "shell": "bash" }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit|Bash",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" gate", "shell": "bash" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" nudge", "shell": "bash" }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" stop", "shell": "bash" }
+        ]
+      }
+    ],
+    "PreCompact": [
+      {
+        "matcher": "manual|auto",
+        "hooks": [
+          { "type": "command", "command": "bash \"${CLAUDE_PLUGIN_ROOT}/adapters/claude-code/dispatch.sh\" stop", "shell": "bash" }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,16 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://ultraspec/decision.schema.json",
+  "title": "ultraspec normalized decision",
+  "type": "object",
+  "required": ["decision"],
+  "additionalProperties": false,
+  "properties": {
+    "decision": {
+      "enum": ["allow", "deny", "block", "nudge"],
+      "description": "allow: proceed. deny: refuse a tool call (pre_write/pre_bash). block: prevent turn end (stop/pre_compact). nudge: non-blocking message."
+    },
+    "reason": { "type": ["string", "null"] },
+    "context": { "type": ["string", "null"], "description": "extra context to surface to the agent" }
+  }
+}
