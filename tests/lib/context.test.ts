@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { describe, it, expect, beforeEach, afterEach, vi } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
 import * as os from "node:os";
@@ -475,5 +475,26 @@ describe("edge cases from bash tests", () => {
 
     const d = stopDecision(env, s, "stop");
     expect(d.decision).not.toBe("nudge");
+  });
+  it("stopDecision returns nudge even if nudge_marker patchState fails (fail-open)", () => {
+    root = mkProject();
+    const env = resolveEnv(root)!;
+    const entries = Array.from({ length: 20 }, (_, i) => ({
+      at: "2026-01-01T00:00:00Z", session_id: "s", event: "post_write", note: "n",
+    }));
+    const s: UsState = { ...baseState, session_log: entries, nudge_marker: null };
+    writeState(env, s);
+
+    // Make the ultraspec directory read-only to block patchState's write attempt
+    const ultraspecDir = path.join(root, "ultraspec");
+    fs.chmodSync(ultraspecDir, 0o555); // read-only
+
+    // Should still return nudge without throwing, even though patchState will fail
+    const d = stopDecision(env, s, "stop");
+    expect(d.decision).toBe("nudge");
+    expect(d.reason).toContain("Molto lavoro dall'ultimo handoff");
+
+    // Restore permissions for cleanup in afterEach
+    fs.chmodSync(ultraspecDir, 0o755);
   });
 });

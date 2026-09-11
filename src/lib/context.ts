@@ -93,7 +93,12 @@ export function stopDecision(env: UsEnv, state: UsState, event: "stop" | "pre_co
   const since = state.session_log.filter((e) => e.event === "post_write").length;
   const bucket = Math.floor(since / threshold);
   if (bucket >= 1 && state.nudge_marker !== bucket) {
-    patchState(env, (s) => ({ ...s, nudge_marker: bucket }));
+    try {
+      patchState(env, (s) => ({ ...s, nudge_marker: bucket }));
+    } catch {
+      // Silently swallow patchState errors (e.g. filesystem issues);
+      // nudge emission proceeds regardless of persistence success
+    }
     return emit("nudge", `Molto lavoro dall'ultimo handoff (${since} scritture). Scrivi /ultraspec:handoff prima di chiudere o compattare, così la prossima sessione riparte pulita.`);
   }
   return emit("allow", `nothing to gate at ${event}`);
