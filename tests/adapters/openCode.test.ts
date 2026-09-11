@@ -85,3 +85,56 @@ describe("opencode adapter — UltraspecPlugin tool.execute.after (nudge)", () =
     ).resolves.not.toThrow();
   });
 });
+
+describe("opencode adapter — UltraspecPlugin experimental.chat.messages.transform (banner)", () => {
+  it("prepends banner to first user message when active workflow exists", async () => {
+    root = mkActiveProject("build");
+    const plugin = await UltraspecPlugin({ directory: root });
+    const output = {
+      messages: [
+        {
+          info: { role: "user" },
+          parts: [{ type: "text", text: "hello" }],
+        },
+      ],
+    };
+    const originalLength = output.messages[0].parts.length;
+    await plugin["experimental.chat.messages.transform"](undefined, output);
+    expect(output.messages[0].parts.length).toBe(originalLength + 1);
+    expect(output.messages[0].parts[0].type).toBe("text");
+    expect(output.messages[0].parts[0].text).toContain("[ultraspec context]");
+    expect(output.messages[0].parts[0].text).toContain("workflow=");
+  });
+
+  it("skips banner when [ultraspec] marker already present in user message", async () => {
+    root = mkActiveProject("build");
+    const plugin = await UltraspecPlugin({ directory: root });
+    const output = {
+      messages: [
+        {
+          info: { role: "user" },
+          parts: [{ type: "text", text: "hello [ultraspec] world" }],
+        },
+      ],
+    };
+    const originalLength = output.messages[0].parts.length;
+    await plugin["experimental.chat.messages.transform"](undefined, output);
+    expect(output.messages[0].parts.length).toBe(originalLength);
+  });
+
+  it("skips banner when no active workflow (bannerText returns empty)", async () => {
+    root = fs.mkdtempSync(path.join(os.tmpdir(), "us-oc-noconfig-"));
+    const plugin = await UltraspecPlugin({ directory: root });
+    const output = {
+      messages: [
+        {
+          info: { role: "user" },
+          parts: [{ type: "text", text: "hello" }],
+        },
+      ],
+    };
+    const originalLength = output.messages[0].parts.length;
+    await plugin["experimental.chat.messages.transform"](undefined, output);
+    expect(output.messages[0].parts.length).toBe(originalLength);
+  });
+});
