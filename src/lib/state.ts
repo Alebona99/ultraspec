@@ -83,7 +83,7 @@ export function logSession(env: UsEnv, event: string, note: string, sessionId?: 
   }));
 }
 
-export function appendHistory(env: UsEnv, entry: Omit<HistoryEntry, "at">): void {
+export function appendHistory(env: UsEnv, entry: { event: string; [k: string]: unknown }): void {
   patchState(env, (s) => ({ ...s, history: [...s.history, { ...entry, at: nowIso() }] }));
 }
 
