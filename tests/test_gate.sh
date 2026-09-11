@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-# Tests for hooks/us-gate.sh + hooks/lib/us-decision.sh  (task 2.3)
+# End-to-end tests for hooks/us-gate.sh hook script (fail-open cases)
+# Pure unit tests for glob matching and decisions moved to tests/lib/decision.test.ts (Task 4)
 set -u
 here="$(cd "$(dirname "$0")" && pwd)"
 export US_SRC="${US_SRC:-$(cd "$here/.." && pwd)}"
@@ -24,65 +25,6 @@ gate() { # gate <root> <event-json>
   ( cd "$1" && printf '%s' "$2" | US_ROOT="$1" bash "$GATE" )
 }
 ev_write() { jq -nc --arg p "$1" '{event:"pre_write",cwd:$ENV.PWD,session_id:"s",target_path:$p}'; }
-ev_bash()  { jq -nc --arg c "$1" '{event:"pre_bash",cwd:$ENV.PWD,session_id:"s",command:$c}'; }
-
-it "write to src/ during SPEC -> deny"
-r="$(mkstate spec)"
-d="$(gate "$r" "$(ev_write "$r/src/app.js")")"
-assert_eq "deny" "$(jq -r .decision <<<"$d")"
-assert_contains "$(jq -r .reason <<<"$d")" "fase 'spec'"
-
-it "write to openspec/ during SPEC -> allow"
-d="$(gate "$r" "$(ev_write "$r/ultraspec/workflows/w/spec.md")")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "write to .us-state.json is DENIED in every phase (the gate's own integrity)"
-for ph in spec build review; do
-  rr="$(mkstate "$ph")"
-  d="$(gate "$rr" "$(ev_write "$rr/ultraspec/.us-state.json")")"
-  assert_eq "deny" "$(jq -r .decision <<<"$d")"
-done
-
-it "write to ultraspec/us.config.json is DENIED in build too"
-rb2="$(mkstate build)"
-d="$(gate "$rb2" "$(ev_write "$rb2/ultraspec/us.config.json")")"
-assert_eq "deny" "$(jq -r .decision <<<"$d")"
-
-it "write to ultraspec/hooks/ is DENIED in build"
-d="$(gate "$rb2" "$(ev_write "$rb2/ultraspec/hooks/us-gate.sh")")"
-assert_eq "deny" "$(jq -r .decision <<<"$d")"
-
-it "write to a *.md file anywhere during SPEC -> allow"
-d="$(gate "$r" "$(ev_write "$r/src/notes.md")")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "write to a test file during SPEC -> allow"
-d="$(gate "$r" "$(ev_write "$r/src/app_test.js")")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "write to src/ during BUILD -> allow"
-rb="$(mkstate build)"
-d="$(gate "$rb" "$(ev_write "$rb/src/app.js")")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "git commit during PLAN -> deny"
-rp="$(mkstate plan)"
-d="$(gate "$rp" "$(ev_bash 'git commit -m wip')")"
-assert_eq "deny" "$(jq -r .decision <<<"$d")"
-assert_contains "$(jq -r .reason <<<"$d")" "git commit"
-
-it "git commit during BUILD -> allow"
-d="$(gate "$rb" "$(ev_bash 'git commit -m wip')")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "git push during REVIEW -> allow"
-rv="$(mkstate review)"
-d="$(gate "$rv" "$(ev_bash 'git push origin HEAD')")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
-
-it "a harmless bash command is always allow"
-d="$(gate "$rp" "$(ev_bash 'ls -la')")"
-assert_eq "allow" "$(jq -r .decision <<<"$d")"
 
 it "no active workflow -> allow (fail-open)"
 empty="$(us_fixture_root "")"
@@ -95,6 +37,7 @@ d="$(gate "$bad" "$(ev_write "$bad/src/app.js")")"
 assert_eq "allow" "$(jq -r .decision <<<"$d")"
 
 it "gate always exits 0 (adapter owns the block translation)"
+r="$(mkstate spec)"
 gate "$r" "$(ev_write "$r/src/app.js")" >/dev/null; assert_rc 0 "$?"
 
 us_test_summary
