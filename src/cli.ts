@@ -14,6 +14,8 @@ import { cmdBoard } from "./commands/board.js";
 import { cmdSetTrack } from "./commands/setTrack.js";
 import { cmdHandoffPath, cmdHandoffDone } from "./commands/handoff.js";
 import { handleClaudeCodeHook } from "./adapters/claudeCode.js";
+import { normalizeEvent } from "./lib/event.js";
+import { decide } from "./hooks/gate.js";
 import type { UsEnv } from "./types.js";
 
 const HELP = `ultraspec — state-machine CLI (backing implementation for the /ultraspec:* commands)
@@ -60,7 +62,45 @@ function runStateCommand(sub: string, env: UsEnv, rest: string[]): string {
   }
 }
 
+function readStdinJson(): { ok: true; payload: unknown } | { ok: false; exitCode: number } {
+  let raw: string;
+  try {
+    raw = fs.readFileSync(0, "utf8");
+  } catch {
+    console.error("us: impossibile leggere stdin");
+    return { ok: false, exitCode: 1 };
+  }
+  try {
+    return { ok: true, payload: raw.trim() ? JSON.parse(raw) : {} };
+  } catch {
+    console.error("us: payload JSON non valido su stdin");
+    return { ok: false, exitCode: 1 };
+  }
+}
+
+// Minimal fallback path for the generic-git pre-commit hook (adapters/generic-git/pre-commit).
+// Unlike claude-code, this is not exit-code-2/hookSpecificOutput JSON — the git hook contract is
+// simply: non-zero exit blocks the commit, stderr carries the reason.
+function runGenericGitHook(cwd: string): number {
+  const read = readStdinJson();
+  if (!read.ok) return read.exitCode;
+  const event = normalizeEvent("generic-git", read.payload);
+  const decision = decide(cwd, event);
+  if (decision.decision === "deny") {
+    console.error(decision.reason ?? "commit bloccato");
+    return 1;
+  }
+  return 0;
+}
+
 function runHook(harness: string | undefined, core: string | undefined, cwd: string): number {
+  if (harness === "generic-git") {
+    if (core !== "gate") {
+      console.error(`us: hook sconosciuto: ${core ?? ""}`);
+      return 1;
+    }
+    return runGenericGitHook(cwd);
+  }
   if (harness !== "claude-code") {
     console.error(`us: harness sconosciuto: ${harness ?? ""}`);
     return 1;
@@ -69,21 +109,9 @@ function runHook(harness: string | undefined, core: string | undefined, cwd: str
     console.error(`us: hook sconosciuto: ${core ?? ""}`);
     return 1;
   }
-  let raw: string;
-  try {
-    raw = fs.readFileSync(0, "utf8");
-  } catch {
-    console.error("us: impossibile leggere stdin");
-    return 1;
-  }
-  let payload: unknown;
-  try {
-    payload = raw.trim() ? JSON.parse(raw) : {};
-  } catch {
-    console.error("us: payload JSON non valido su stdin");
-    return 1;
-  }
-  const { exitCode, stdout, stderr } = handleClaudeCodeHook(core, cwd, payload);
+  const read = readStdinJson();
+  if (!read.ok) return read.exitCode;
+  const { exitCode, stdout, stderr } = handleClaudeCodeHook(core, cwd, read.payload);
   if (stdout) process.stdout.write(stdout);
   if (stderr) process.stderr.write(stderr.endsWith("\n") ? stderr : stderr + "\n");
   return exitCode;

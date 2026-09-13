@@ -17,17 +17,10 @@
 //    devDependency, TypeScript's own strict-mode typing already gives
 //    equivalent structural guarantees within the codebase.
 //
-// NOT ported (found during this task, out of scope — see report): the bash
-// check "commands invoke the CLI via ${CLAUDE_PLUGIN_ROOT}/bin/us" was
-// supposed to be updated here to assert dist/cli.js instead, per the task
-// brief's claim that Task 8 already changed commands/*.md to reference it.
-// That claim does not hold: every commands/*.md file still invokes
-// `bash "${CLAUDE_PLUGIN_ROOT}/bin/us"` (bin/us no longer exists in this
-// worktree), while only adapters/claude-code/hooks.json was updated to
-// dist/cli.js. Asserting dist/cli.js here would be a test that fails
-// against a real, pre-existing bug, not a check of this port's work — so it
-// is left out rather than either papering over the bug or silently fixing
-// 16 unrelated files as a side effect of a test-porting task.
+// Fixed in Task 11c: every commands/*.md now invokes the CLI via
+// `node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"` (bin/us no longer exists),
+// matching the convention already used by adapters/claude-code/hooks.json.
+// See the regression check below.
 import { describe, it, expect } from "vitest";
 import * as fs from "node:fs";
 import * as path from "node:path";
@@ -82,6 +75,17 @@ describe("packaging: commands/", () => {
   it("phase commands point at the neutral workflow procedure", () => {
     const content = fs.readFileSync(path.join(repoRoot, "commands", "spec.md"), "utf8");
     expect(content).toContain("workflow/spec.md");
+  });
+
+  it("every command invokes the CLI via dist/cli.js, not the deleted bin/us", () => {
+    for (const c of COMMANDS) {
+      const content = fs.readFileSync(path.join(repoRoot, "commands", `${c}.md`), "utf8");
+      expect(content, `commands/${c}.md references bin/us`).not.toContain("bin/us");
+      if (/CLAUDE_PLUGIN_ROOT/.test(content)) {
+        expect(content, `commands/${c}.md references CLAUDE_PLUGIN_ROOT without invoking dist/cli.js`)
+          .toContain('node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"');
+      }
+    }
   });
 
   it("no command/workflow/template/doc references another platform", () => {

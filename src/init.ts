@@ -108,24 +108,20 @@ export function installGenericGit(target: string, packageRoot: string): string[]
   const srcDir = path.join(packageRoot, "adapters", "generic-git");
   const dstDir = path.join(target, "ultraspec", "adapters", "generic-git");
   ensureDir(dstDir);
-  let installShPath = "";
   for (const f of ["install.sh", "pre-commit"]) {
     const dst = path.join(dstDir, f);
     fs.copyFileSync(path.join(srcDir, f), dst);
     fs.chmodSync(dst, 0o755);
     written.push(dst);
-    if (f === "install.sh") {
-      installShPath = dst;
-    }
   }
-  // Execute install.sh to wire the pre-commit hook into .git/hooks
-  if (installShPath) {
-    try {
-      execFileSync(installShPath, [], { cwd: target });
-    } catch (e) {
-      // install.sh exits gracefully if target is not a git repo; that's acceptable
-      // so we catch and continue rather than throwing
-    }
+  // Run install.sh from ITS OWN location in packageRoot (not the copy above) so it
+  // resolves dist/cli.js relative to the real package root; cwd=target still makes
+  // it install into the target repo's .git/hooks.
+  try {
+    execFileSync(path.join(srcDir, "install.sh"), [], { cwd: target });
+  } catch (e) {
+    // install.sh exits gracefully if target is not a git repo; that's acceptable
+    // so we catch and continue rather than throwing
   }
   return written;
 }

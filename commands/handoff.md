@@ -10,7 +10,7 @@ Scrivi un handoff così che una sessione nuova riparta senza rileggere tutto.
 
 1. Ricava il percorso:
    ```
-   bash "${CLAUDE_PLUGIN_ROOT}/bin/us" handoff-path
+   node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" handoff-path
    ```
 2. Scrivi quel file da `templates/handoff.md`:
    - **Fase / stato in una riga**: da `/ultraspec:status`.
@@ -23,7 +23,7 @@ Scrivi un handoff così che una sessione nuova riparta senza rileggere tutto.
    come contesto alla prossima sessione.
 4. Registra:
    ```
-   bash "${CLAUDE_PLUGIN_ROOT}/bin/us" handoff-done <file>
+   node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" handoff-done <file>
    ```
 
 L'handoff è **effimero** — consumato una volta alla ripresa. Non scrivere nulla

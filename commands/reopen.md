@@ -6,7 +6,7 @@ argument-hint: "<fase> --reason \"...\""
 # /ultraspec:reopen <fase> --reason "..."
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" reopen <fase> --reason "descrizione del perché"
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" reopen <fase> --reason "descrizione del perché"
 ```
 
 Riporta il workflow indietro a `<fase>`. Serve quando emerge complessità

@@ -77,6 +77,35 @@ describe("runInit", () => {
     expect(() => runInit(target, packageRoot)).not.toThrow();
   });
 
+  it("the installed pre-commit hook genuinely blocks in a denied phase and allows in an allowed phase", () => {
+    target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
+    execFileSync("git", ["init"], { cwd: target });
+    execFileSync("git", ["config", "user.email", "test@example.com"], { cwd: target });
+    execFileSync("git", ["config", "user.name", "Test"], { cwd: target });
+    runInit(target, packageRoot);
+    const preCommitPath = path.join(target, ".git/hooks/pre-commit");
+    expect(fs.existsSync(preCommitPath)).toBe(true);
+
+    const statePath = path.join(target, "ultraspec/.us-state.json");
+    const denied = {
+      workflow: "demo", track: "greenfield", phase: "intake", phases_done: [],
+      harness: null, artifacts_dir: "ultraspec/workflows/demo", gates: {},
+      session_log: [], last_handoff_at: null, last_session_id: null,
+      last_session_at: null, nudge_marker: null, history: [],
+    };
+    fs.writeFileSync(statePath, JSON.stringify(denied));
+
+    fs.writeFileSync(path.join(target, "a.txt"), "x");
+    execFileSync("git", ["add", "a.txt"], { cwd: target });
+    // intake is not in commit_allowed_phases (build/review/archive) -> the hook must block
+    expect(() => execFileSync(preCommitPath, [], { cwd: target })).toThrow();
+
+    const allowed = { ...denied, phase: "build" };
+    fs.writeFileSync(statePath, JSON.stringify(allowed));
+    // build IS in commit_allowed_phases -> the hook must allow (exit 0, no throw)
+    expect(() => execFileSync(preCommitPath, [], { cwd: target })).not.toThrow();
+  });
+
   it("records packageVersion in .manifest.json entries", () => {
     target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
     runInit(target, packageRoot);

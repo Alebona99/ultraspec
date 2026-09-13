@@ -5,7 +5,7 @@ description: Panoramica: workflow attivo e suoi artefatti, tutti i workflow, com
 # /ultraspec:board
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" board
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" board
 ```
 
 Aggrega tutto ciò che è "appeso":

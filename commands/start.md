@@ -21,7 +21,7 @@ Avvia un nuovo workflow ultraspec.
 
 4. Esegui:
    ```
-   bash "${CLAUDE_PLUGIN_ROOT}/bin/us" start <nome> --track <greenfield|brownfield> --harness <harness>
+   node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" start <nome> --track <greenfield|brownfield> --harness <harness>
    ```
    Crea `ultraspec/workflows/<nome>/` (dove vivranno gli artefatti di fase) e
    lo state file in fase `intake`.

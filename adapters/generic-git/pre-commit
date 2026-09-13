@@ -5,31 +5,38 @@
 # harness cannot reliably intercept a single file write, a `git commit` made in a
 # phase that does not allow commits will fail here.
 #
-# Self-locating: walks up from the repo root looking for ultraspec/hooks.
+# This is a TEMPLATE: install.sh generates the real hook from this file,
+# substituting the placeholder below with the absolute path to the package's
+# own dist/cli.js at install time.
+#
+# Self-locating: walks up from the repo root looking for ultraspec/.
 set -u
 
-find_us_hooks() {
+ULTRASPEC_CLI_JS="@@ULTRASPEC_CLI_JS@@"
+
+find_us_root() {
   local dir; dir="$(pwd)"
   while [ -n "$dir" ]; do
-    [ -f "$dir/ultraspec/hooks/lib/us-state.sh" ] && { printf '%s\n' "$dir/ultraspec/hooks"; return 0; }
+    [ -f "$dir/ultraspec/us.config.json" ] && return 0
     [ "$dir" = "/" ] && break
     dir="$(dirname "$dir")"
   done
   return 1
 }
 
-US_HOOKS="$(find_us_hooks)" || exit 0          # ultraspec not present -> do nothing
-command -v jq >/dev/null 2>&1 || exit 0         # no jq -> fail open
+find_us_root || exit 0   # ultraspec not present in this repo -> no-op
 
-. "$US_HOOKS/lib/us-state.sh"
-. "$US_HOOKS/lib/us-event.sh"
+if command -v us >/dev/null 2>&1; then
+  us_cli() { us "$@"; }
+else
+  us_cli() { node "$ULTRASPEC_CLI_JS" "$@"; }
+fi
 
-ev="$(jq -nc --arg c "git commit" --arg w "$(pwd)" '{command:$c, cwd:$w}' | us_event_normalize generic-git)"
-decision="$(printf '%s' "$ev" | bash "$US_HOOKS/us-gate.sh" 2>/dev/null)"
-d="$(printf '%s' "$decision" | jq -r '.decision // "allow"' 2>/dev/null)"
+payload="$(printf '{"command":"git commit","cwd":"%s"}' "$(pwd)")"
 
-if [ "$d" = "deny" ]; then
-  printf 'ultraspec: %s\n' "$(printf '%s' "$decision" | jq -r '.reason // "commit bloccato"')" >&2
+if ! out="$(printf '%s' "$payload" | us_cli hook generic-git gate 2>&1)"; then
+  printf 'ultraspec: commit bloccato\n' >&2
+  [ -n "$out" ] && printf '%s\n' "$out" >&2
   printf 'ultraspec: usa /ultraspec:advance per raggiungere una fase in cui il commit e'\'' consentito, oppure --no-verify per forzare (sconsigliato).\n' >&2
   exit 1
 fi
