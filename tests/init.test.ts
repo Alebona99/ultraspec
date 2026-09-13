@@ -33,6 +33,17 @@ describe("runInit", () => {
     expect(status).not.toContain('bash "us"');
     expect(status).not.toContain("CLAUDE_PLUGIN_ROOT");
   });
+  it("generates all .claude/commands/ultraspec/*.md files with zero remaining CLAUDE_PLUGIN_ROOT references", () => {
+    target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
+    runInit(target, packageRoot);
+    const dir = path.join(target, ".claude/commands/ultraspec");
+    const files = fs.readdirSync(dir);
+    expect(files.length).toBeGreaterThan(0);
+    for (const f of files) {
+      const content = fs.readFileSync(path.join(dir, f), "utf8");
+      expect(content).not.toContain("CLAUDE_PLUGIN_ROOT");
+    }
+  });
   it("generates .claude/settings.json with the 6 hook events", () => {
     target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
     runInit(target, packageRoot);

@@ -65,7 +65,8 @@ export function generateCommands(target, packageRoot) {
     ensureDir(dstDir);
     for (const f of fs.readdirSync(srcDir)) {
         const content = fs.readFileSync(path.join(srcDir, f), "utf8")
-            .replaceAll('node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"', "us");
+            .replaceAll('node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"', "us")
+            .replace(/\$\{CLAUDE_PLUGIN_ROOT\}\/workflow\//g, "ultraspec/workflow/");
         const dst = path.join(dstDir, f);
         fs.writeFileSync(dst, content);
         written.push(dst);
