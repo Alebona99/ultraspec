@@ -24,8 +24,11 @@ Legend:
   stop-gated phase is incomplete, or nudge for a handoff.
 
 State-file integrity (independent of the row above): on **every** harness the
-`.us-state.json`, `us.config.json` and the `hooks/`/`adapters/`/`bin/` scripts
-are in `protected_always_globs` — the agent cannot write them in any phase. This
+`.us-state.json`, `us.config.json` and the `hooks/`/`adapters/` scripts are in
+`protected_always_globs` — the agent cannot write them in any phase. The state
+machine itself (`dist/cli.js`, exposed as the `us`/`ultraspec` binary) lives in
+the npm package, not inside the target project, so it isn't part of this glob.
+This
 is what makes the gate un-bypassable. `human_approved` is only ever set by
 `us approve`; where a harness can't tell agent input from user input (Claude
 Code), that command stays runnable by the agent but every call is visible and
