@@ -1,6 +1,6 @@
 {
   "name": "ultraspec",
-  "version": "0.2.0",
+  "version": "0.1.0",
   "description": "Una pipeline di sviluppo imposta (discover -> spec -> plan -> build -> review -> archive) con onramp greenfield/brownfield e gate deterministici via hook, cross-harness. Standalone: nessuna dipendenza da altri plugin.",
   "author": { "name": "Alessio Bonanno" },
   "keywords": ["workflow", "hooks", "spec-driven", "greenfield", "brownfield", "enforcement"],

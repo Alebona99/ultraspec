@@ -2,15 +2,6 @@ import * as fs from "node:fs";
 import * as path from "node:path";
 import { cfg, readState, stateActive } from "../lib/state.js";
 import { cmdStatus } from "./status.js";
-function isExecutable(p) {
-    try {
-        fs.accessSync(p, fs.constants.X_OK);
-        return true;
-    }
-    catch {
-        return false;
-    }
-}
 function artifactsSection(env) {
     const lines = ["", "--- Workflow attivo: artefatti ---"];
     if (stateActive(env)) {
@@ -62,10 +53,6 @@ function allWorkflowsSection(env) {
 }
 function testsSection(env) {
     const lines = ["", "--- Test ---"];
-    const runSh = path.join(env.dir, "tests", "run.sh");
-    if (fs.existsSync(runSh) && isExecutable(runSh)) {
-        lines.push("  ultraspec:  bash ultraspec/tests/run.sh");
-    }
     const checks = [
         ["package.json", "npm test"],
         ["pnpm-lock.yaml", "pnpm test"],
