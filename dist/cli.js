@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 import * as fs from "node:fs";
 import * as path from "node:path";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { realpathSync } from "node:fs";
 import { resolveEnv } from "./lib/state.js";
 import { runInit } from "./init.js";
 import { runUpdate } from "./update.js";
@@ -159,6 +160,6 @@ export function main(argv, cwd = process.cwd()) {
         return 1;
     }
 }
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+if (process.argv[1] && import.meta.url === pathToFileURL(realpathSync(process.argv[1])).href) {
     process.exit(main(process.argv.slice(2)));
 }

@@ -1,6 +1,14 @@
 import { describe, it, expect } from "vitest";
+import * as fs from "node:fs";
+import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { emit, pathMatchesAny, decidePreWrite, decidePreBash } from "../../src/lib/decision.js";
 import type { UsConfig, UsEnv, UsState } from "../../src/types.js";
+
+const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+const shippedConfig: UsConfig = JSON.parse(
+  fs.readFileSync(path.join(repoRoot, "us.config.json"), "utf8")
+);
 
 function mkEnv(overrides: Partial<UsConfig> = {}): UsEnv {
   const config: UsConfig = {
@@ -89,5 +97,34 @@ describe("decidePreBash", () => {
   });
   it("non commit/push command -> allow", () => {
     expect(decidePreBash(env, mkState("intake"), "ls -la").decision).toBe("allow");
+  });
+});
+
+describe("decidePreWrite with the actual shipped us.config.json", () => {
+  const shippedEnv: UsEnv = {
+    root: "/repo", dir: "/repo/ultraspec",
+    configPath: "/repo/ultraspec/us.config.json", stateFile: "/repo/ultraspec/.us-state.json",
+    config: shippedConfig,
+  };
+  const phases = shippedConfig.phase_order;
+
+  it("generated slash commands (.claude/commands/ultraspec/**) are denied in every phase", () => {
+    for (const phase of phases) {
+      const d = decidePreWrite(shippedEnv, mkState(phase), ".claude/commands/ultraspec/status.md");
+      expect(d.decision, `phase ${phase}`).toBe("deny");
+    }
+  });
+
+  it(".claude/settings.json is denied in every phase", () => {
+    for (const phase of phases) {
+      const d = decidePreWrite(shippedEnv, mkState(phase), ".claude/settings.json");
+      expect(d.decision, `phase ${phase}`).toBe("deny");
+    }
+  });
+
+  it("protected_always_globs wins even though always_allowed_globs has **/*.md", () => {
+    expect(shippedConfig.always_allowed_globs).toContain("**/*.md");
+    const d = decidePreWrite(shippedEnv, mkState("build"), ".claude/commands/ultraspec/status.md");
+    expect(d.decision).toBe("deny");
   });
 });

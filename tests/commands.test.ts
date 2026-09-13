@@ -224,12 +224,10 @@ describe("cmdReopen (4.3)", () => {
 
 describe("cmdStatus (4.4)", () => {
   it("status --json reports phase, missing artifacts, enforcement", () => {
+    // enforcementLevel() reads adapters/SUPPORT.md from the package root (it ships
+    // there, not copied into the project by init — see status.ts), so this exercises
+    // the real repo's adapters/SUPPORT.md; the claude-code row there has 4 X's -> "completo".
     root = setupSpec();
-    fs.mkdirSync(path.join(root, "ultraspec", "adapters"), { recursive: true });
-    fs.writeFileSync(
-      path.join(root, "ultraspec", "adapters", "SUPPORT.md"),
-      "| harness | a | b | c | d |\n|---|---|---|---|---|\n| claude-code | X | X | X | X |\n"
-    );
     const out = cmdStatus(env(root), ["--json"]);
     const j = JSON.parse(out);
     expect(j.phase).toBe("spec");

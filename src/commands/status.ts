@@ -1,5 +1,6 @@
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import type { UsEnv } from "../types.js";
 import { cfg, readState, stateActive } from "../lib/state.js";
 import { gateApproved, missingArtifacts } from "../lib/context.js";
@@ -9,9 +10,17 @@ function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
+// adapters/SUPPORT.md ships in the npm package root (see package.json "files"),
+// not copied into the host project by `init` — resolve it relative to this
+// compiled module's own location (dist/commands/status.js -> package root),
+// same pattern src/cli.ts and src/init.ts use for packageRoot.
+function packageRoot(): string {
+  return path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..", "..");
+}
+
 export function enforcementLevel(env: UsEnv, harness: string | null): string {
   if (!harness) return "sconosciuto";
-  const f = path.join(env.dir, "adapters", "SUPPORT.md");
+  const f = path.join(packageRoot(), "adapters", "SUPPORT.md");
   if (!fs.existsSync(f)) return "sconosciuto";
   const content = fs.readFileSync(f, "utf8");
   const re = new RegExp(`^\\| *${escapeRegExp(harness)} *\\|`, "i");

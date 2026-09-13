@@ -8,7 +8,7 @@ Dopo l'avanzamento la fase è `done` e il workflow è chiuso.
 
 ## Passi
 
-1. `ultraspec/bin/us status` — conferma fase `archive`.
+1. `us status` — conferma fase `archive`.
 2. Scrivi `ultraspec/workflows/<workflow>/summary.md` (da `templates/summary.md`):
    cosa è stato costruito, decisioni chiave, deviazioni dalla spec e perché, link
    ai commit, follow-up noti. Resta come traccia durevole del lavoro.

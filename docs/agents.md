@@ -70,14 +70,19 @@ ultraspec init
 Questo dà già la macchina a stati (`us`/`ultraspec` sul PATH) e il fallback
 `adapters/generic-git/pre-commit`.
 
-- **Hook** dall'adapter `adapters/opencode/plugin.ts`. **Nota**: questo file
-  non è (ancora) incluso nel pacchetto npm pubblicato (vedi `files` in
-  `package.json`) — per usarlo serve un checkout del repo o l'installazione
-  via marketplace/plugin locale (vedi sopra per Claude Code, stesso principio:
-  `ultraspec/` alla radice del progetto). In `opencode.json`:
+- **Hook** dall'adapter `adapters/opencode/plugin.ts`. Il file è incluso nel
+  pacchetto npm pubblicato (vedi `files` in `package.json`), quindi è già
+  presente dove `npm` installa il pacchetto — `$(npm root -g)/ultraspec/adapters/opencode/plugin.ts`
+  per un'installazione globale, `./node_modules/ultraspec/adapters/opencode/plugin.ts`
+  per una locale al progetto. `init` non copia questo file dentro
+  `ultraspec/`: in `opencode.json` punta al percorso reale del pacchetto
+  installato, es.:
   ```json
-  { "plugin": ["./ultraspec/adapters/opencode/plugin.ts"] }
+  { "plugin": ["./node_modules/ultraspec/adapters/opencode/plugin.ts"] }
   ```
+  In alternativa, con un checkout del repo (o l'installazione via
+  marketplace/plugin locale di Claude Code), punta al percorso del checkout:
+  `{ "plugin": ["<path-al-checkout>/adapters/opencode/plugin.ts"] }`.
 - Blocca le scritture fuori fase (il plugin lancia un errore), inietta il
   riepilogo nel primo messaggio, appende al machine log.
 - **Comandi**: non ci sono `/ultraspec:*` nativi. Usa `AGENTS.md` (vedi sotto) o

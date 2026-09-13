@@ -29,7 +29,8 @@ describe("runInit", () => {
     target = fs.mkdtempSync(path.join(os.tmpdir(), "us-init-"));
     runInit(target, packageRoot);
     const status = fs.readFileSync(path.join(target, ".claude/commands/ultraspec/status.md"), "utf8");
-    expect(status).toContain('bash "us" status');
+    expect(status).toMatch(/\bus status\b/);
+    expect(status).not.toContain('bash "us"');
     expect(status).not.toContain("CLAUDE_PLUGIN_ROOT");
   });
   it("generates .claude/settings.json with the 6 hook events", () => {

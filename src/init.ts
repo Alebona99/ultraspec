@@ -73,8 +73,7 @@ export function generateCommands(target: string, packageRoot: string): string[] 
   ensureDir(dstDir);
   for (const f of fs.readdirSync(srcDir)) {
     const content = fs.readFileSync(path.join(srcDir, f), "utf8")
-      .replaceAll('bash "${CLAUDE_PLUGIN_ROOT}/bin/us"', 'bash "us"')
-      .replaceAll('node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"', 'bash "us"');
+      .replaceAll('node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js"', "us");
     const dst = path.join(dstDir, f);
     fs.writeFileSync(dst, content);
     written.push(dst);
@@ -104,26 +103,21 @@ export function mergeSettings(target: string): string {
 }
 
 export function installGenericGit(target: string, packageRoot: string): string[] {
-  const written: string[] = [];
+  // Adapters live in the npm package, not per-project (see spec decision #3):
+  // copying install.sh/pre-commit into <target>/ultraspec/adapters/ would ship
+  // a pre-commit with the unsubstituted @@ULTRASPEC_CLI_JS@@ placeholder and an
+  // install.sh that computes a broken dist/cli.js path if ever run standalone.
+  // Only execute the ORIGINAL install.sh from packageRoot, which installs the
+  // real hook into the target repo's .git/hooks/pre-commit; cwd=target makes it
+  // operate on the right repo.
   const srcDir = path.join(packageRoot, "adapters", "generic-git");
-  const dstDir = path.join(target, "ultraspec", "adapters", "generic-git");
-  ensureDir(dstDir);
-  for (const f of ["install.sh", "pre-commit"]) {
-    const dst = path.join(dstDir, f);
-    fs.copyFileSync(path.join(srcDir, f), dst);
-    fs.chmodSync(dst, 0o755);
-    written.push(dst);
-  }
-  // Run install.sh from ITS OWN location in packageRoot (not the copy above) so it
-  // resolves dist/cli.js relative to the real package root; cwd=target still makes
-  // it install into the target repo's .git/hooks.
   try {
     execFileSync(path.join(srcDir, "install.sh"), [], { cwd: target });
   } catch (e) {
     // install.sh exits gracefully if target is not a git repo; that's acceptable
     // so we catch and continue rather than throwing
   }
-  return written;
+  return [];
 }
 
 export function generateAgentsMd(target: string, packageRoot: string): string[] {

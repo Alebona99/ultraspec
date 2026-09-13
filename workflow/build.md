@@ -9,7 +9,7 @@
 ## 0. Contesto
 
 ```
-ultraspec/bin/us status
+us status
 ```
 Leggi `plan.md`.
 

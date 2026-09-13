@@ -8,7 +8,7 @@
 ## 0. Contesto
 
 ```
-ultraspec/bin/us status
+us status
 ```
 Leggi `discovery.md`. Se `spec.md` esiste già, riprendilo dal punto 3.
 

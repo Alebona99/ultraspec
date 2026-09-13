@@ -9,7 +9,7 @@ L'hook `stop` ti trattiene dal chiudere il turno finché `review.md` non esiste.
 ## 0. Contesto
 
 ```
-ultraspec/bin/us status
+us status
 ```
 
 ## 1. Rivedi il diff di questo workflow (dalla base)

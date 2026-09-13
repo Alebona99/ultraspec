@@ -2,7 +2,7 @@
 
 Un file per fase (`discover`, `spec`, `plan`, `build`, `review`, `archive`).
 Sono **indipendenti dall'agent**: markdown puro, riferiscono il CLI come
-`ultraspec/bin/us` (che si auto-localizza).
+`us` (che si auto-localizza).
 
 - **Claude Code**: i comandi `/ultraspec:<fase>` puntano qui; l'agent le esegue
   anche da solo quando entra in una fase (vedi la sezione ultraspec di

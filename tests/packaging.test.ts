@@ -88,6 +88,18 @@ describe("packaging: commands/", () => {
     }
   });
 
+  it("no file shipped to host projects (templates/, workflow/) references the deleted bin/us", () => {
+    for (const dir of ["templates", "workflow"]) {
+      const full = path.join(repoRoot, dir);
+      for (const f of fs.readdirSync(full)) {
+        const fp = path.join(full, f);
+        if (!fs.statSync(fp).isFile()) continue;
+        const content = fs.readFileSync(fp, "utf8");
+        expect(content, `${dir}/${f} references bin/us`).not.toContain("bin/us");
+      }
+    }
+  });
+
   it("no command/workflow/template/doc references another platform", () => {
     for (const dir of ["commands", "workflow", "templates", "docs"]) {
       const full = path.join(repoRoot, dir);
