@@ -6,7 +6,7 @@ argument-hint: "<fase>"
 # /ultraspec:approve <fase>
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" approve <fase>
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" approve <fase>
 ```
 
 Registra che **l'utente** ha approvato il gate di una fase.

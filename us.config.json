@@ -11,9 +11,9 @@
   "protected_always_globs": [
     "**/.us-state.json",
     "ultraspec/us.config.json",
-    "ultraspec/hooks/**",
     "ultraspec/adapters/**",
-    "ultraspec/bin/**"
+    ".claude/commands/ultraspec/**",
+    ".claude/settings.json"
   ],
   "protected_globs": [
     "src/**", "app/**", "lib/**", "pkg/**", "packages/**", "cmd/**", "internal/**", "api/**"

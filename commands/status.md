@@ -5,8 +5,8 @@ description: Mostra fase, track, artefatti mancanti, stato dei gate, harness ed 
 # /ultraspec:status
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" status          # leggibile
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" status --json   # programmatico
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" status          # leggibile
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" status --json   # programmatico
 ```
 
 Usalo quando: un'operazione è stata appena bloccata (spiega *perché* e *come

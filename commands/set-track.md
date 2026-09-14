@@ -6,7 +6,7 @@ argument-hint: "greenfield|brownfield"
 # /ultraspec:set-track <greenfield|brownfield>
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" set-track <greenfield|brownfield>
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" set-track <greenfield|brownfield>
 ```
 
 Il track influenza solo la fase `discover`, quindi si cambia solo mentre sei in

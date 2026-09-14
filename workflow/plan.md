@@ -8,7 +8,7 @@
 ## 0. Contesto
 
 ```
-ultraspec/bin/us status
+us status
 ```
 Leggi `spec.md`. Assumi un implementatore che conosce bene il linguaggio ma
 **nulla** di questo codebase e del dominio.

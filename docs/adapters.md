@@ -56,10 +56,10 @@ Each core script writes one of these to stdout. Schema: `templates/decision.sche
 2. Map native events → normalized events (extend `us-event.sh` or emit directly).
 3. Map normalized decisions → the harness's block/inject mechanism.
 4. Add a row to `adapters/SUPPORT.md` with the honest capability set.
-5. Add cases to `tests/test_adapters.sh` using native payloads in
-   `tests/fixtures/`. Those fixtures are **sintetici** (scritti a mano dal
-   contratto documentato); `RUNBOOK.md` §1 step 0 li fa confrontare con un
-   payload reale catturato dall'harness.
+5. Add cases under `tests/adapters/` (Vitest) using native payloads
+   inlined or fixtured in the test file. Those payloads are **sintetici**
+   (scritti a mano dal contratto documentato); `RUNBOOK.md` §1 step 0 li fa
+   confrontare con un payload reale catturato dall'harness.
 6. Always ship `generic-git/pre-commit` alongside — it is the floor.
 
 ## Tested harness versions

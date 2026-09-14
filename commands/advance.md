@@ -5,7 +5,7 @@ description: Fa avanzare il workflow alla fase successiva, dopo aver verificato 
 # /ultraspec:advance
 
 ```
-bash "${CLAUDE_PLUGIN_ROOT}/bin/us" advance
+node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" advance
 ```
 
 Avanza di una fase. **Solo in avanti.**

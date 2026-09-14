@@ -1,0 +1,23 @@
+{
+  "name": "ultraspec",
+  "version": "0.1.0",
+  "description": "Pipeline di sviluppo imposta (discover -> spec -> plan -> build -> review -> archive) con onramp greenfield/brownfield e gate deterministici, cross-harness. Standalone.",
+  "type": "module",
+  "bin": { "us": "./dist/cli.js", "ultraspec": "./dist/cli.js" },
+  "files": ["dist", "commands", "workflow", "templates", "adapters/generic-git", "adapters/claude-code/hooks.json", "adapters/opencode", "adapters/SUPPORT.md", "us.config.json", "README.md", "LICENSE"],
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json && chmod +x dist/cli.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run build && npm test"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0",
+    "@types/node": "^20.19.0"
+  },
+  "license": "MIT",
+  "author": { "name": "Alessio Bonanno" },
+  "repository": { "type": "git", "url": "https://github.com/Alebona99/ultraspec" }
+}

@@ -10,7 +10,7 @@
 ## 0. Contesto
 
 ```
-ultraspec/bin/us status
+us status
 ```
 Prendi `track` e la cartella degli artefatti. Se `discovery.md` esiste già ed è
 completo, riassumilo all'utente e passa al punto 4.
@@ -64,7 +64,7 @@ Leggi `agent_instructions` da `ultraspec/us.config.json`:
 ## 3. Cambio di track (opzionale)
 
 Se durante la discovery capisci che il track scelto è sbagliato:
-`ultraspec/bin/us set-track <greenfield|brownfield>` (funziona solo in
+`us set-track <greenfield|brownfield>` (funziona solo in
 `intake`/`discover`), poi ricomincia dal punto 1.
 
 ## 4. Chiudi la fase

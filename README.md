@@ -39,7 +39,8 @@ Standalone: nessuna dipendenza da altri plugin. Funziona con **più agent**
   esegue leggendole. `commands/` (Claude Code) e `AGENTS.md` (altri agent)
   puntano qui.
 - **commands/** — i comandi slash `/ultraspec:*` per Claude Code.
-- **bin/us** — la macchina a stati (bash + jq, si auto-localizza).
+- **`dist/cli.js`** — la macchina a stati, TypeScript compilato, esposto come
+  binario npm `us`/`ultraspec`.
 - **workflows/** — gli artefatti di ogni workflow (`ultraspec/workflows/<nome>/`).
 
 L'agent **esegue da solo** la procedura di fase quando ci entra (il riepilogo
@@ -66,62 +67,34 @@ dell'utente**.
 
 Istruzioni complete per ogni agent in **[`docs/agents.md`](docs/agents.md)**.
 
-**Passo 0, sempre** — ultraspec vive in una cartella `ultraspec/` alla radice
-del progetto che lo usa (stato, config e workflow ci si scrivono dentro).
-Nel progetto target:
-
+**Via npm (consigliata):**
 ```
-git submodule add https://github.com/Alebona99/ultraspec.git ultraspec
-# oppure, senza submodule:
-git clone https://github.com/Alebona99/ultraspec.git ultraspec && rm -rf ultraspec/.git
+npm i -g ultraspec
+cd il-tuo-progetto
+ultraspec init
 ```
+Genera `ultraspec/` (stato, config, procedure di fase editabili) e
+`.claude/commands/ultraspec/*.md` + gli hook in `.claude/settings.json`.
+Aggiornamenti: `npm update -g ultraspec && ultraspec update`.
 
-In breve — Claude Code come plugin locale, `.claude/settings.json`:
-
-```json
-{
-  "extraKnownMarketplaces": {
-    "ultraspec": { "source": { "source": "directory", "path": "./ultraspec" } }
-  },
-  "enabledPlugins": { "ultraspec@ultraspec": true }
-}
-```
-
-più `./ultraspec/adapters/generic-git/install.sh` (il fallback git va su
-**ogni** agent). OpenCode: aggiungi il plugin in `opencode.json`. Altri agent:
-basta `AGENTS.md` (generato dalla fase discover) + il fallback git.
-
-**Oppure, solo Claude Code, senza clonare a mano** — come plugin da
-marketplace remoto:
+**Via marketplace Claude Code (nessuna installazione globale):**
 ```
 /plugin marketplace add https://github.com/Alebona99/ultraspec
 /plugin install ultraspec@ultraspec
 ```
-Nota: `bin/us` e gli hook cercano comunque una cartella `ultraspec/` con dentro
-`us.config.json` risalendo dal progetto — verificare che l'installazione plugin
-la crei dove serve, o ripiegare sul Passo 0 se `bin/us status` non trova lo stato.
-
-## Alias da shell
-
-`bin/us` si auto-localizza risalendo fino a `ultraspec/us.config.json`, quindi:
-
-```
-alias ultraspec='<path-assoluto>/ultraspec/bin/us'
-```
-
-funziona da qualunque sottocartella di un repo che contiene `ultraspec/`.
-I comandi `/ultraspec:*` usano invece `${CLAUDE_PLUGIN_ROOT}/bin/us`.
+Richiede `node`, non npm/registry. In questo caso serve comunque
+`ultraspec init` (via `npx ultraspec init` o dal `dist/cli.js` del plugin)
+per creare la cartella `ultraspec/` dati nel progetto.
 
 ## Requisiti
 
-- `jq` — hook shell (senza, i gate si disattivano con un warning a inizio sessione)
-- `node` — solo per l'adapter OpenCode
-- `python3` + `jsonschema` — solo per `tests/`
+- `node` >= 18 — l'unico requisito, sia per usare il pacchetto pubblicato sia
+  per buildare/testare questo repo (`npm run build && npm test`, Vitest)
 
 ## Test
 
 ```
-bash ultraspec/tests/run.sh
+npm run build && npm test
 ```
 
 ## Stato

@@ -13,4 +13,4 @@ In sintesi: fai il lavoro della fase, produci l'artefatto richiesto in
 previsto, `/ultraspec:approve spec`). Non eseguire `/ultraspec:advance` né
 `/ultraspec:approve` da solo — sono comandi di controllo dell'utente.
 
-Per lo stato: `bash "${CLAUDE_PLUGIN_ROOT}/bin/us" status`.
+Per lo stato: `node "${CLAUDE_PLUGIN_ROOT}/dist/cli.js" status`.
