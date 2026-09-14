@@ -86,6 +86,33 @@ Richiede `node`, non npm/registry. In questo caso serve comunque
 `ultraspec init` (via `npx ultraspec init` o dal `dist/cli.js` del plugin)
 per creare la cartella `ultraspec/` dati nel progetto.
 
+## Uso in locale (senza pubblicare su npm)
+
+Il pacchetto non è ancora su npm (`npm i -g ultraspec` funzionerà solo dopo
+la prima `npm publish`). Nel frattempo, da un clone di questo repo:
+
+```
+npm install
+npm run build
+npm link          # registra `us`/`ultraspec` globalmente, puntando a questo checkout
+```
+
+Poi in un progetto qualsiasi:
+```
+cd il-tuo-progetto
+ultraspec init
+```
+
+`npm link` crea un symlink globale al `dist/cli.js` di questo checkout: ogni
+`npm run build` successivo (dopo aver modificato `src/`) si riflette subito,
+senza rifare `npm link`. Per disinstallare: `npm unlink -g ultraspec`.
+
+Se non vuoi nemmeno il link globale, puoi invocare la CLI direttamente:
+```
+node /percorso/assoluto/al/repo/dist/cli.js init
+node /percorso/assoluto/al/repo/dist/cli.js status
+```
+
 ## Requisiti
 
 - `node` >= 18 — l'unico requisito, sia per usare il pacchetto pubblicato sia
